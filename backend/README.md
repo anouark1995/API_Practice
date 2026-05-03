@@ -517,7 +517,8 @@ cd backend
 # Create and activate a virtual environment (isolates dependencies)
 python3 -m venv .venv
 source .venv/bin/activate        # Mac/Linux
-# .venv\Scripts\activate         # Windows
+python3 -m venv .venv
+.venv\Scripts\activate         # Windows
 
 # Install dependencies
 pip install -r requirements.txt
