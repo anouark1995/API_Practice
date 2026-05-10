@@ -63,16 +63,33 @@ class GradeService:
         if not self.grade_exists(grade_id):
             return None
         
+        fields = data.model_dump(exclude_unset=True)
+
+        if not fields:
+            self.get(grade_id)
+
+        if "student_id" in fields:
+            student = self.db.execute(text(
+                "SELECT id FROM students WHERE id = :id"),
+                {"id" : fields["student_id"]},
+            ).fetchone()
+            if student is None:
+                return None
+        
+        set_clause = ", ".join(f"{col} = :{col}" for col in fields)
+        fields["id"] = grade_id
         # Build a dynamic SET clause from data.model_dump(exclude_unset=True)
         # If student_id is being changed, verify the new student exists
         # Execute the UPDATE, commit, and return the updated grade via self.get()
+    
         self.db.execute(
-            text(f"UPDATE students SET {set_clause} WHERE id = :id"),
+            text(f"UPDATE grades SET {set_clause} WHERE id = :id"),
             fields,
         )
+
         self.db.commit()
-        return self.get(student_id)
-        return None
+        return self.get(grade_id)
+        
 
     def delete(self, grade_id: int) -> bool:
         # TODO: check the grade exists first (return False → 404 if not)
