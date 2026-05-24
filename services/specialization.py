@@ -43,3 +43,35 @@ class SpeService:
         
         self.db.commit()
         return self.get(specialization.lastrowid)
+    
+    def update(self, specialization_id : int, data: SpecializationUpdate) -> dict | None:
+        if self.get(specialization_id) is None:
+            return None
+        
+        fields = data.model_dump(exclude_unset=True)
+
+        if not fields:
+            return self.get(specialization_id)
+        
+        set_clause = ", ".join(f"{col}= :{col}" for col in fields)
+        fields["id"] = specialization_id
+        self.db.excute(
+            text(f"UPDATE specializations SET {set_clause} WHERE id= :id"),
+            fields
+        )
+        self.db.commit()
+        return self.get(specialization_id)
+    
+    def delete(self, specialization_id : int) -> bool:
+        if self.get(specialization_id) is None:
+            return False
+        
+        self.db.execute(
+            text("DELETE FROM specializations WHERE id= :id"),
+            {"id" : specialization_id}
+        )
+
+        self.db.commit()
+        return True
+
+
